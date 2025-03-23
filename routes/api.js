@@ -1,9 +1,15 @@
 const { getBaseUrl } = require("../config/baseUrl");
 const { getUsers, createUser } = require("../controllers/UserController");
 const { register, login } = require("../controllers/AuthController");
+const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
 function handleRequest(req, res) {
   const url = new URL(req.url, getBaseUrl(req));
+
+  res.success = (statusCode, message, data = null) =>
+    successResponse(res, statusCode, message, data);
+  res.error = (statusCode, message, data = null) =>
+    errorResponse(res, statusCode, message, data);
 
   // Auth Routes
   if (req.method === "POST" && url.pathname === "/api/auth/register") {

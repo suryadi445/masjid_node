@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const { insertUser, findUserByEmail } = require("../models/userModel");
-const { hashPassword } = require("../helpers/hashPassword");
+const { hashPassword } = require("../helpers/hashPasswordHelper");
 const Joi = require("joi");
 
 const validateUser = async (data) => {
@@ -45,8 +45,7 @@ const register = async (req, res) => {
 
       const validation = await validateUser({ name, email, password });
       if (validation.errors) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ errors: validation.errors }));
+        return res.error(400, validation.errors);
       }
 
       // Hash password
@@ -55,17 +54,9 @@ const register = async (req, res) => {
       // save to database
       const newUser = await insertUser(name, email, hashedPassword);
 
-      res.writeHead(201, { "Content-Type": "application/json" });
-      res.end(
-        JSON.stringify({
-          message: "Registration successful!",
-          user: newUser,
-        })
-      );
+      return res.success(201, newUser);
     } catch (error) {
-      console.error(error);
-      res.writeHead(500, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Internal server error!" }));
+      return res.error(500, "Internal server error");
     }
   });
 };
