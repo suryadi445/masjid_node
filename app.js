@@ -1,8 +1,16 @@
 const http = require("http");
 const { handleRequest } = require("./routes/api");
+const { setHeaders } = require("./middleware");
 
-const server = http.createServer(handleRequest);
+const PORT = 5000;
 
-server.listen(5000, () =>
-  console.log("Server running on http://localhost:5000")
-);
+const server = http.createServer((req, res) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  setHeaders(req, res, () => {
+    handleRequest(req, res);
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
