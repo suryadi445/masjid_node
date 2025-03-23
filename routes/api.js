@@ -1,25 +1,28 @@
+const { getBaseUrl } = require("../config/baseUrl");
 const { getUsers, createUser } = require("../controllers/UserController");
+const { register, login } = require("../controllers/AuthController");
 
 function handleRequest(req, res) {
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*"); // Izinkan semua domain
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Izinkan metode
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type"); // Izinkan header
+  const url = new URL(req.url, getBaseUrl(req));
 
-  // Tangani request OPTIONS (preflight request dari browser)
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    return res.end();
+  // Auth Routes
+  if (req.method === "POST" && url.pathname === "/api/auth/register") {
+    return register(req, res);
+  } else if (req.method === "POST" && url.pathname === "/api/auth/login") {
+    return login(req, res);
   }
 
-  if (req.method === "GET" && req.url === "/api/users") {
+  // User Routes
+  if (req.method === "GET" && url.pathname === "/api/users") {
     return getUsers(req, res);
-  } else if (req.method === "POST" && req.url === "/api/users") {
+  } else if (req.method === "POST" && url.pathname === "/api/users") {
     return createUser(req, res);
-  } else {
-    res.writeHead(404);
-    res.end(JSON.stringify({ message: "Not Found" }));
   }
+
+  // 404 Error Handling
+  console.log(`404 Not Found: ${req.method} ${url.pathname}`);
+  res.writeHead(404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ message: "Not Found" }));
 }
 
 module.exports = { handleRequest };
