@@ -1,5 +1,9 @@
 const { getBaseUrl } = require("../config/baseUrl");
-const { getUsers, createUser } = require("../controllers/UserController");
+const {
+  getUsers,
+  createUser,
+  getProfile,
+} = require("../controllers/UserController");
 const { register, login } = require("../controllers/AuthController");
 const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
@@ -23,6 +27,8 @@ function handleRequest(req, res) {
     return getUsers(req, res);
   } else if (req.method === "POST" && url.pathname === "/api/users") {
     return createUser(req, res);
+  } else if (req.method === "GET" && url.pathname === "/api/user/profile") {
+    return getProfile(req, res);
   }
 
   // 404 Error Handling

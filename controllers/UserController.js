@@ -1,3 +1,5 @@
+const { findUserId } = require("../models/userModel");
+
 const users = [
   { id: 1, name: "John Doe" },
   { id: 2, name: "Jane Doe" },
@@ -23,4 +25,17 @@ function createUser(req, res) {
   });
 }
 
-module.exports = { getUsers, createUser };
+function getProfile(req, res) {
+  const userId = req.user.id;
+
+  findUserId(userId)
+    .then((profile) => {
+      return res.success(200, profile);
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.error(500, error.message);
+    });
+}
+
+module.exports = { getUsers, createUser, getProfile };
