@@ -25,6 +25,10 @@ const setHeaders = (req, res, next) => {
 };
 
 const authMiddleware = (req, res, next) => {
+  if (witheListToken(req)) {
+    return next(); // Skip auth for public routes
+  }
+
   const token = req.cookies.token; // Get token from cookies (read only)
 
   if (!token) {
@@ -40,6 +44,17 @@ const authMiddleware = (req, res, next) => {
     req.user = decoded;
     next(); // Continue to the next middleware or route handler
   });
+};
+
+const witheListToken = (req) => {
+  const openRoutes = [
+    { url: "/api/auth/login", method: "POST" },
+    { url: "/api/auth/register", method: "POST" },
+  ];
+
+  return openRoutes.some(
+    (route) => req.url === route.url && req.method === route.method
+  );
 };
 
 module.exports = { setHeaders, authMiddleware };
