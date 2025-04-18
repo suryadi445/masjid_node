@@ -4,7 +4,11 @@ const {
   createUser,
   getProfile,
 } = require("../controllers/UserController");
-const { register, login } = require("../controllers/AuthController");
+const {
+  register,
+  login,
+  refreshToken,
+} = require("../controllers/AuthController");
 const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
 function handleRequest(req, res) {
@@ -20,6 +24,11 @@ function handleRequest(req, res) {
     return register(req, res);
   } else if (req.method === "POST" && url.pathname === "/api/auth/login") {
     return login(req, res);
+  } else if (
+    req.method === "POST" &&
+    url.pathname === "/api/auth/refresh-token"
+  ) {
+    return refreshToken(req, res);
   }
 
   // User Routes
