@@ -1,6 +1,7 @@
 const http = require("http");
+const cookieParser = require("cookie-parser");
+const { setHeaders, authMiddleware } = require("./middleware");
 const { handleRequest } = require("./routes/api");
-const { setHeaders } = require("./middleware");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -25,7 +26,9 @@ const server = http.createServer((req, res) => {
   cookieMiddleware(req, res, () => {
     console.log(`Incoming request: ${req.method} ${req.url}`);
     setHeaders(req, res, () => {
-      handleRequest(req, res);
+      authMiddleware(req, res, () => {
+        handleRequest(req, res);
+      });
     });
   });
 });
