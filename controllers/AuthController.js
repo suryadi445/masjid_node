@@ -3,8 +3,15 @@ const { insertUser, findUserByEmail } = require("../models/userModel");
 const { hashPassword } = require("../helpers/hashPasswordHelper");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
+const {
+  generateAccessToken,
+} = require("../services/auth/generateTokenService");
+const {
+  generateRefreshToken,
+} = require("../services/auth/refreshTokenService");
 require("dotenv").config();
 
+// validation register
 const validateRegister = async (data) => {
   const schema = Joi.object({
     name: Joi.string().min(3).required().messages({
@@ -34,6 +41,7 @@ const validateRegister = async (data) => {
   return { errors: null };
 };
 
+// validation login
 const validateLogin = async (data) => {
   const schema = Joi.object({
     email: Joi.string().email().required().messages({
@@ -54,6 +62,7 @@ const validateLogin = async (data) => {
   return { errors: null };
 };
 
+// function register
 const register = async (req, res) => {
   let body = "";
 
@@ -83,8 +92,8 @@ const register = async (req, res) => {
   });
 };
 
+// function login
 function login(req, res) {
-  const secretKey = process.env.JWT_SECRET;
   let body = "";
 
   req.on("data", (chunk) => {
@@ -112,12 +121,14 @@ function login(req, res) {
       }
 
       const safeUser = { id: user.id, name: user.name, email: user.email };
-      const token = jwt.sign(safeUser, secretKey, { expiresIn: "1d" });
 
-      res.setHeader(
-        "Set-Cookie",
-        `token=${token}; HttpOnly; Max-Age=86400; Path=/; SameSite=Strict`
-      );
+      const token = generateAccessToken(safeUser);
+      const refreshToken = generateRefreshToken(safeUser);
+
+      res.setHeader("Set-Cookie", [
+        `${process.env.ACCESS_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Path=/; Max-Age=900`, // Access token 15 minutes
+        `${process.env.REFRESH_TOKEN_COOKIE_NAME}=${refreshToken}; HttpOnly; Path=/; Max-Age=3600`, // Refresh token 1 hour
+      ]);
       return res.success(200, safeUser);
     } catch (error) {
       return res.error(500, error.message);
@@ -125,4 +136,31 @@ function login(req, res) {
   });
 }
 
-module.exports = { register, login };
+const refreshToken = (req, res) => {
+  const refreshTokenCookieName = process.env.REFRESH_TOKEN_COOKIE_NAME;
+  const refreshToken = req.cookies[refreshTokenCookieName];
+
+  if (!refreshToken) {
+    return res.error(401, "No refresh token provided");
+  }
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.error(403, "Invalid refresh token");
+    }
+
+    const user = { id: decoded.id, email: decoded.email };
+
+    const token = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    res.setHeader("Set-Cookie", [
+      `${process.env.ACCESS_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Path=/; Max-Age=900`, // Access token 15 minutes
+      `${process.env.REFRESH_TOKEN_COOKIE_NAME}=${newRefreshToken}; HttpOnly; Path=/; Max-Age=3600`, // Refresh token 1 hour
+    ]);
+
+    return res.success(200, "Tokens refreshed");
+  });
+};
+
+module.exports = { register, login, refreshToken };
