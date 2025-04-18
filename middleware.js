@@ -1,4 +1,5 @@
 const { getBaseUrl } = require("./config/baseUrl");
+const jwt = require("jsonwebtoken");
 
 const setHeaders = (req, res, next) => {
   const url = new URL(req.url, getBaseUrl(req));
@@ -23,4 +24,22 @@ const setHeaders = (req, res, next) => {
   next(); // next request handler
 };
 
-module.exports = { setHeaders };
+const authMiddleware = (req, res, next) => {
+  const token = req.cookies.token; // Get token from cookies (read only)
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided." });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Token is invalid." });
+    }
+
+    // Attach decoded user information to the request object
+    req.user = decoded;
+    next(); // Continue to the next middleware or route handler
+  });
+};
+
+module.exports = { setHeaders, authMiddleware };
