@@ -3,6 +3,7 @@ const {
   getUsers,
   createUser,
   getProfile,
+  updateProfile,
 } = require("../controllers/UserController");
 const {
   register,
@@ -38,6 +39,8 @@ function handleRequest(req, res) {
     return createUser(req, res);
   } else if (req.method === "GET" && url.pathname === "/api/user/profile") {
     return getProfile(req, res);
+  } else if (req.method === "POST" && url.pathname === "/api/user/profile") {
+    return updateProfile(req, res);
   }
 
   // 404 Error Handling
