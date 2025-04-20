@@ -37,6 +37,8 @@ function getProfile(req, res) {
 
       const { password, created_at, updated_at, ...safeProfile } = profile;
 
+      safeProfile.path = "http://localhost:5000/uploads/images/";
+
       return res.success(200, safeProfile);
     })
     .catch((error) => {

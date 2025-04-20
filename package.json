@@ -17,6 +17,7 @@
     "formidable": "^3.5.3",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "mime-types": "^3.0.1",
     "pg": "^8.14.1"
   }
 }

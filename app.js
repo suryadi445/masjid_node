@@ -2,6 +2,8 @@ const http = require("http");
 const { setHeaders, authMiddleware } = require("./middleware");
 const { handleRequest } = require("./routes/api");
 const dotenv = require("dotenv");
+const path = require("path");
+const fs = require("fs");
 
 dotenv.config();
 const PORT = process.env.APP_PORT;
@@ -23,8 +25,37 @@ const parseCookies = (cookieHeader) => {
   return cookies;
 };
 
+const serveStaticFile = (req, res) => {
+  const staticDir = path.join(__dirname, "uploads", "images");
+  const filePath = path.join(
+    staticDir,
+    req.url.replace("/uploads/images/", "")
+  );
+
+  if (req.url.startsWith("/uploads/images/") && fs.existsSync(filePath)) {
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType =
+      {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+      }[ext] || "application/octet-stream";
+
+    res.writeHead(200, { "Content-Type": contentType });
+    fs.createReadStream(filePath).pipe(res);
+    return true;
+  }
+
+  return false;
+};
+
 const server = http.createServer((req, res) => {
   try {
+    if (serveStaticFile(req, res)) return;
+
+    // Middleware stack
     cookieMiddleware(req, res, () => {
       console.log(`Incoming request: ${req.method} ${req.url}`);
       setHeaders(req, res, () => {
@@ -40,6 +71,24 @@ const server = http.createServer((req, res) => {
     );
   }
 });
+
+// const server = http.createServer((req, res) => {
+//   try {
+//     cookieMiddleware(req, res, () => {
+//       console.log(`Incoming request: ${req.method} ${req.url}`);
+//       setHeaders(req, res, () => {
+//         authMiddleware(req, res, () => {
+//           handleRequest(req, res);
+//         });
+//       });
+//     });
+//   } catch (err) {
+//     res.writeHead(500, { "Content-Type": "application/json" });
+//     res.end(
+//       JSON.stringify({ message: "Internal Server Error", error: err.message })
+//     );
+//   }
+// });
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
