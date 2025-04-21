@@ -2,6 +2,7 @@ const { findUserId, updateUser } = require("../models/userModel");
 const path = require("path");
 const fs = require("fs");
 const formidable = require("formidable");
+const { validateFile, moveUploadedFile } = require("../utils/fileHandler");
 
 const users = [
   { id: 1, name: "John Doe" },
@@ -37,7 +38,7 @@ function getProfile(req, res) {
 
       const { password, created_at, updated_at, ...safeProfile } = profile;
 
-      safeProfile.path = "http://localhost:5000/uploads/images/";
+      safeProfile.path = process.env.FILE_UPLOAD_PATH;
 
       return res.success(200, safeProfile);
     })
@@ -59,7 +60,7 @@ function updateProfile(req, res) {
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      console.log(err);
+      console.log("error parse", err);
       return res.error(500, "Form parsing error");
     }
 
@@ -73,13 +74,18 @@ function updateProfile(req, res) {
     // upload image
     let imageName = null;
     if (imageFile && imageFile[0]) {
-      const fileExtension = path.extname(imageFile[0].originalFilename);
-      const newFileName = `${Date.now()}${fileExtension}`;
-      const newPath = path.join(form.uploadDir, newFileName);
+      const { valid, error } = validateFile(imageFile[0], "image");
+      if (!valid) {
+        return res.error(400, error);
+      }
 
-      fs.renameSync(imageFile[0].filepath, newPath);
+      // Move file if valid
+      const result = moveUploadedFile(imageFile[0], form.uploadDir);
+      if (!result) {
+        return res.error(500, moveError);
+      }
 
-      imageName = newFileName;
+      imageName = result.newFileName;
     }
 
     try {
