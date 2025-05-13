@@ -64,77 +64,62 @@ const validateLogin = async (data) => {
 
 // function register
 const register = async (req, res) => {
-  let body = "";
+  try {
+    const { name, email, password } = req.body;
 
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-
-  req.on("end", async () => {
-    try {
-      const { name, email, password } = JSON.parse(body);
-
-      const validation = await validateRegister({ name, email, password });
-      if (validation.errors) {
-        return res.error(422, validation.errors);
-      }
-
-      // Hash password
-      const hashedPassword = await hashPassword(password);
-
-      // save to database
-      const newUser = await insertUser(name, email, hashedPassword);
-
-      return res.success(201, newUser);
-    } catch (error) {
-      return res.error(500, "Internal server error");
-    }
-  });
-};
-
-// function login
-function login(req, res) {
-  let body = "";
-
-  req.on("data", (chunk) => {
-    body += chunk;
-  });
-
-  req.on("end", async () => {
-    const data = JSON.parse(body);
-    const validation = await validateLogin(data);
-
+    const validation = await validateRegister({ name, email, password });
     if (validation.errors) {
       return res.error(422, validation.errors);
     }
 
-    try {
-      const user = await findUserByEmail(data.email);
+    // Hash password
+    const hashedPassword = await hashPassword(password);
 
-      if (!user) {
-        return res.error(401, "Email is not registered.");
-      }
+    // save to database
+    const newUser = await insertUser(name, email, hashedPassword);
 
-      const isMatch = await bcrypt.compare(data.password, user.password);
-      if (!isMatch) {
-        return res.error(401, "Invalid password.");
-      }
+    return res.success(201, newUser);
+  } catch (error) {
+    return res.error(500, "Internal server error");
+  }
+};
 
-      const safeUser = { id: user.id, name: user.name, email: user.email };
+// function login
+const login = async (req, res) => {
+  const data = req.body;
 
-      const token = generateAccessToken(safeUser);
-      const refreshToken = generateRefreshToken(safeUser);
+  const validation = await validateLogin(data);
 
-      res.setHeader("Set-Cookie", [
-        `${process.env.ACCESS_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Path=/; Max-Age=900`, // Access token 15 minutes
-        `${process.env.REFRESH_TOKEN_COOKIE_NAME}=${refreshToken}; HttpOnly; Path=/; Max-Age=3600`, // Refresh token 1 hour
-      ]);
-      return res.success(200, safeUser);
-    } catch (error) {
-      return res.error(500, error.message);
+  if (validation.errors) {
+    return res.error(422, validation.errors);
+  }
+
+  try {
+    const user = await findUserByEmail(data.email);
+
+    if (!user) {
+      return res.error(401, "Email is not registered.");
     }
-  });
-}
+
+    const isMatch = await bcrypt.compare(data.password, user.password);
+    if (!isMatch) {
+      return res.error(401, "Invalid password.");
+    }
+
+    const safeUser = { id: user.id, name: user.name, email: user.email };
+
+    const token = generateAccessToken(safeUser);
+    const refreshToken = generateRefreshToken(safeUser);
+
+    res.setHeader("Set-Cookie", [
+      `${process.env.ACCESS_TOKEN_COOKIE_NAME}=${token}; HttpOnly; Path=/; Max-Age=900`, // Access token 15 minutes
+      `${process.env.REFRESH_TOKEN_COOKIE_NAME}=${refreshToken}; HttpOnly; Path=/; Max-Age=3600`, // Refresh token 1 hour
+    ]);
+    return res.success(200, safeUser);
+  } catch (error) {
+    return res.error(500, error.message);
+  }
+};
 
 const refreshToken = (req, res) => {
   const refreshTokenCookieName = process.env.REFRESH_TOKEN_COOKIE_NAME;

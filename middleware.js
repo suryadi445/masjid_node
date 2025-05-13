@@ -52,6 +52,31 @@ const authMiddleware = (req, res, next) => {
   });
 };
 
+const bodyParserMiddleware = (req, res, next) => {
+  let data = "";
+
+  req.on("data", (chunk) => {
+    data += chunk;
+  });
+
+  req.on("end", () => {
+    try {
+      if (data) {
+        req.body = JSON.parse(data);
+      }
+      next();
+    } catch (err) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ message: "Invalid JSON payload" }));
+    }
+  });
+
+  req.on("error", () => {
+    res.writeHead(500, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ message: "Error parsing body" }));
+  });
+};
+
 const witheListToken = (req) => {
   const openRoutes = [
     { url: "/api/auth/login", method: "POST" },
@@ -64,4 +89,4 @@ const witheListToken = (req) => {
   );
 };
 
-module.exports = { setHeaders, authMiddleware };
+module.exports = { setHeaders, authMiddleware, bodyParserMiddleware };

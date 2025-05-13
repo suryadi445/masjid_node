@@ -1,4 +1,4 @@
-const { findUserId, updateUser } = require("../models/userModel");
+const { findUserId, updateUserById } = require("../models/userModel");
 const path = require("path");
 const fs = require("fs");
 const formidable = require("formidable");
@@ -9,27 +9,21 @@ const users = [
   { id: 2, name: "Jane Doe" },
 ];
 
-function getUsers(req, res) {
+function getAllUser(req, res) {
   res.writeHead(200);
   res.end(JSON.stringify(users));
 }
 
 function createUser(req, res) {
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk.toString();
-  });
-  req.on("end", () => {
-    const userData = JSON.parse(body);
-    users.push({ id: users.length + 1, name: userData.name });
-    res.writeHead(201);
-    res.end(
-      JSON.stringify({ message: `User ${userData.name} created successfully` })
-    );
-  });
+  const userData = req.body;
+  users.push({ id: users.length + 1, name: userData.name });
+  res.writeHead(201);
+  res.end(
+    JSON.stringify({ message: `User ${userData.name} created successfully` })
+  );
 }
 
-function getProfile(req, res) {
+function getUser(req, res) {
   const userId = req.user.id;
 
   findUserId(userId)
@@ -48,7 +42,7 @@ function getProfile(req, res) {
     });
 }
 
-function updateProfile(req, res) {
+function updateUser(req, res) {
   const form = new formidable.IncomingForm();
   form.uploadDir = path.join(__dirname, "../uploads/images");
   form.keepExtensions = true;
@@ -102,7 +96,7 @@ function updateProfile(req, res) {
         }
       }
 
-      const update = await updateUser({
+      const update = await updateUserById({
         data: {
           id: id,
           name: name,
@@ -120,4 +114,4 @@ function updateProfile(req, res) {
   });
 }
 
-module.exports = { getUsers, createUser, getProfile, updateProfile };
+module.exports = { getAllUser, createUser, getUser, updateUser };

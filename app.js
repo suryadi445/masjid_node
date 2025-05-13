@@ -1,5 +1,9 @@
 const http = require("http");
-const { setHeaders, authMiddleware } = require("./middleware");
+const {
+  setHeaders,
+  authMiddleware,
+  bodyParserMiddleware,
+} = require("./middleware");
 const { handleRequest } = require("./routes/api");
 const dotenv = require("dotenv");
 const path = require("path");
@@ -55,12 +59,13 @@ const server = http.createServer((req, res) => {
   try {
     if (serveStaticFile(req, res)) return;
 
-    // Middleware stack
     cookieMiddleware(req, res, () => {
       console.log(`Incoming request: ${req.method} ${req.url}`);
       setHeaders(req, res, () => {
-        authMiddleware(req, res, () => {
-          handleRequest(req, res);
+        bodyParserMiddleware(req, res, () => {
+          authMiddleware(req, res, () => {
+            handleRequest(req, res);
+          });
         });
       });
     });
@@ -71,24 +76,6 @@ const server = http.createServer((req, res) => {
     );
   }
 });
-
-// const server = http.createServer((req, res) => {
-//   try {
-//     cookieMiddleware(req, res, () => {
-//       console.log(`Incoming request: ${req.method} ${req.url}`);
-//       setHeaders(req, res, () => {
-//         authMiddleware(req, res, () => {
-//           handleRequest(req, res);
-//         });
-//       });
-//     });
-//   } catch (err) {
-//     res.writeHead(500, { "Content-Type": "application/json" });
-//     res.end(
-//       JSON.stringify({ message: "Internal Server Error", error: err.message })
-//     );
-//   }
-// });
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
