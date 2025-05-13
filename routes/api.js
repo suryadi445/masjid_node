@@ -1,10 +1,11 @@
 const { getBaseUrl } = require("../config/baseUrl");
 const {
-  getUsers,
+  getAllUser,
   createUser,
-  getProfile,
-  updateProfile,
+  getUser,
+  updateUser,
 } = require("../controllers/UserController");
+const { updateProfile } = require("../controllers/ProfileController");
 const {
   register,
   login,
@@ -34,12 +35,14 @@ function handleRequest(req, res) {
 
   // User Routes
   if (req.method === "GET" && url.pathname === "/api/users") {
-    return getUsers(req, res);
+    return getAllUser(req, res);
   } else if (req.method === "POST" && url.pathname === "/api/users") {
     return createUser(req, res);
-  } else if (req.method === "GET" && url.pathname === "/api/user/profile") {
-    return getProfile(req, res);
+  } else if (req.method === "GET" && url.pathname === "/api/user") {
+    return getUser(req, res);
   } else if (req.method === "POST" && url.pathname === "/api/user/profile") {
+    return updateUser(req, res);
+  } else if (req.method === "PUT" && url.pathname === "/api/user/profile") {
     return updateProfile(req, res);
   }
 
