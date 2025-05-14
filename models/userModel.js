@@ -89,7 +89,21 @@ const findUserByEmail = async (email) => {
 
 // Check user By id
 const findUserId = async (id) => {
-  const query = "SELECT * FROM users WHERE id = $1";
+  const query = `SELECT u.id AS user_id,
+                    u.name,
+                    u.email,
+                    u.image,
+                    up.birthday,
+                    up.gender,
+                    up.phone_number,
+                    up.title,
+                    up.religion,
+                    up.marital_status,
+                    up.address,
+                    up.biography
+                FROM users u
+                LEFT JOIN user_profiles up on u.id = up.user_id
+                WHERE u.id = $1`;
 
   try {
     const result = await pool.query(query, [id]);

@@ -6,7 +6,7 @@ const updateProfile = async (req, res) => {
       id: req.user.id,
       birthday: req.body.birthday,
       gender: req.body.gender,
-      phone: req.body.phone,
+      phone_number: req.body.phone_number,
       title: req.body.title,
     });
     return res.success(200, update);
