@@ -53,6 +53,11 @@ const authMiddleware = (req, res, next) => {
 };
 
 const bodyParserMiddleware = (req, res, next) => {
+  const contentType = req.headers["content-type"] || "";
+  if (contentType.startsWith("multipart/form-data")) {
+    return next(); // Skip body parsing for multipart/form-data
+  }
+
   let data = "";
 
   req.on("data", (chunk) => {
