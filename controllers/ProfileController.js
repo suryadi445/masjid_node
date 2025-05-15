@@ -8,6 +8,11 @@ const updateProfile = async (req, res) => {
       gender: req.body.gender,
       phone_number: req.body.phone_number,
       title: req.body.title,
+      religion: req.body.religion,
+      marital_status: req.body.marital_status,
+      address: req.body.address,
+      biography: req.body.biography,
+      updated_by: req.user.id,
     });
     return res.success(200, update);
   } catch (error) {
