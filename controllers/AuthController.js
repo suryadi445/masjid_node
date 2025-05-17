@@ -148,4 +148,12 @@ const refreshToken = (req, res) => {
   });
 };
 
-module.exports = { register, login, refreshToken };
+const logout = (req, res) => {
+  res.setHeader("Set-Cookie", [
+    `${process.env.ACCESS_TOKEN_COOKIE_NAME}=; HttpOnly; Path=/; Max-Age=0`,
+    `${process.env.REFRESH_TOKEN_COOKIE_NAME}=; HttpOnly; Path=/; Max-Age=0`,
+  ]);
+  return res.success(200, "Logout successful");
+};
+
+module.exports = { register, login, refreshToken, logout };

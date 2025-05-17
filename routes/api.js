@@ -10,6 +10,7 @@ const {
   register,
   login,
   refreshToken,
+  logout,
 } = require("../controllers/AuthController");
 const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
@@ -31,6 +32,8 @@ function handleRequest(req, res) {
     url.pathname === "/api/auth/refresh-token"
   ) {
     return refreshToken(req, res);
+  } else if (req.method === "POST" && url.pathname === "/api/auth/logout") {
+    return logout(req, res);
   }
 
   // User Routes
