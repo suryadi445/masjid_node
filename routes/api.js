@@ -4,6 +4,7 @@ const {
   createUser,
   getUser,
   updateUser,
+  deleteProfile,
 } = require("../controllers/UserController");
 const { updateProfile } = require("../controllers/ProfileController");
 const {
@@ -43,8 +44,10 @@ function handleRequest(req, res) {
     return createUser(req, res);
   } else if (req.method === "GET" && url.pathname === "/api/user") {
     return getUser(req, res);
-  } else if (req.method === "POST" && url.pathname === "/api/user/profile") {
+  } else if (req.method === "PUT" && url.pathname === "/api/user") {
     return updateUser(req, res);
+  } else if (req.method === "DELETE" && url.pathname === "/api/user") {
+    // return deleteProfile(req, res);
   } else if (req.method === "PUT" && url.pathname === "/api/user/profile") {
     return updateProfile(req, res);
   }

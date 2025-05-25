@@ -1,18 +1,29 @@
-const { findUserId, updateUserById } = require("../models/userModel");
+const {
+  allUser,
+  findUserId,
+  updateUserById,
+  deleteProfileById,
+} = require("../models/userModel");
 const path = require("path");
 const fs = require("fs");
 const formidable = require("formidable");
 const { validateFile, moveUploadedFile } = require("../utils/fileHandler");
+const url = require("url");
+const { hashPassword } = require("../helpers/hashPasswordHelper");
 
-const users = [
-  { id: 1, name: "John Doe" },
-  { id: 2, name: "Jane Doe" },
-];
+const getAllUser = async function (req, res) {
+  const parsedUrl = url.parse(req.url, true);
 
-function getAllUser(req, res) {
-  res.writeHead(200);
-  res.end(JSON.stringify(users));
-}
+  const page = parseInt(parsedUrl.query.page) || 1;
+  const limit = parseInt(parsedUrl.query.limit) || 10;
+  try {
+    const users = await allUser(limit, page);
+    res.success(200, users);
+  } catch (error) {
+    console.log(error);
+    res.error(500, error.message);
+  }
+};
 
 function createUser(req, res) {
   const userData = req.body;
@@ -24,7 +35,12 @@ function createUser(req, res) {
 }
 
 function getUser(req, res) {
-  const userId = req.user.id;
+  const parsedUrl = url.parse(req.url, true);
+  const queryUserId = parsedUrl.query.id;
+  /**
+   * Use the user ID from the query parameter if available; otherwise, use the ID from the authenticated user (token)
+   */
+  const userId = queryUserId ? queryUserId : req.user.id;
 
   findUserId(userId)
     .then((profile) => {
@@ -43,6 +59,16 @@ function getUser(req, res) {
 }
 
 function updateUser(req, res) {
+  const contentType = req.headers["content-type"] || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    return updateUserByMultipartForm(req, res);
+  } else {
+    return updateUserByJson(req, res);
+  }
+}
+
+function updateUserByMultipartForm(req, res) {
   const form = new formidable.IncomingForm();
   form.uploadDir = path.join(__dirname, "../uploads/images");
   form.keepExtensions = true;
@@ -114,4 +140,45 @@ function updateUser(req, res) {
   });
 }
 
-module.exports = { getAllUser, createUser, getUser, updateUser };
+async function updateUserByJson(req, res) {
+  const { id, name, email, password } = req.body;
+
+  try {
+    let hashedPassword = null;
+    if (password?.trim()) {
+      hashedPassword = await hashPassword(password);
+    }
+
+    const update = await updateUserById({
+      data: {
+        id: id,
+        name: name,
+        email: email,
+        password: hashedPassword,
+        update_by: req.user?.id,
+      },
+    });
+    return res.success(200, update);
+  } catch (error) {
+    console.log(error);
+    return res.error(500, error.message);
+  }
+}
+
+const deleteProfile = async (req, res) => {
+  const id = req.body.id;
+
+  if (!id) {
+    return res.error(400, "User ID is required");
+  }
+
+  try {
+    const deleteProfile = await deleteProfileById(id);
+    return res.success(200, deleteProfile);
+  } catch (error) {
+    console.log(error);
+    return res.error(500, error.message);
+  }
+};
+
+module.exports = { getAllUser, createUser, getUser, updateUser, deleteProfile };

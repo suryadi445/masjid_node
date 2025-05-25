@@ -40,30 +40,47 @@ const insertUser = async (name, email, hashedPassword) => {
 
 // update user
 const updateUserById = async ({ data }) => {
-  const { id, name, email, image = null, update_by = null } = data;
+  const { id, name, email, password, image = null, update_by = null } = data;
 
-  let setFields = [
-    `name = $1`,
-    `email = $2`,
-    `updated_at = NOW()`,
-    `updated_by = $3`,
-  ];
-  let values = [name, email, update_by];
+  const setFields = [];
+  const values = [];
 
+  // Push name
+  setFields.push(`name = $${values.length + 1}`);
+  values.push(name);
+
+  // Push email
+  setFields.push(`email = $${values.length + 1}`);
+  values.push(email);
+
+  // Push updated_by
+  setFields.push(`updated_by = $${values.length + 1}`);
+  values.push(update_by);
+
+  // Push image if available
   if (image) {
-    setFields.push(`image = $4`);
+    setFields.push(`image = $${values.length + 1}`);
     values.push(image);
   }
 
-  const idPosition = values.length + 1;
-  const query = `
-    UPDATE users
-    SET ${setFields.join(", ")}
-    WHERE id = $${idPosition}
-    RETURNING id, name, email, image
-  `;
+  // Push password if available
+  if (password) {
+    setFields.push(`password = $${values.length + 1}`);
+    values.push(password);
+  }
 
-  values.push(id);
+  // Always update the timestamp
+  setFields.push(`updated_at = NOW()`);
+
+  // Final query
+  const query = `
+      UPDATE users
+      SET ${setFields.join(", ")}
+      WHERE id = $${values.length + 1}
+      RETURNING id, name, email, image
+    `;
+
+  values.push(id); // add id at the end
 
   try {
     const result = await pool.query(query, values);
@@ -114,4 +131,48 @@ const findUserId = async (id) => {
   }
 };
 
-module.exports = { insertUser, findUserByEmail, findUserId, updateUserById };
+const allUser = async (limit = 10, page = 1) => {
+  const offset = (page - 1) * limit;
+
+  const query = `SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+  const countQuery = `SELECT COUNT(*) FROM users`;
+
+  try {
+    const dataResult = await pool.query(query, [limit, offset]);
+    const countResult = await pool.query(countQuery);
+
+    const total = parseInt(countResult.rows[0].count);
+    const last_page = Math.ceil(total / limit);
+
+    return {
+      data: dataResult.rows,
+      total,
+      page,
+      last_page,
+    };
+  } catch (error) {
+    console.error("Error finding all user:", error);
+    throw error;
+  }
+};
+
+const deleteProfileById = async (id) => {
+  const query =
+    "DELETE FROM users WHERE id = $1  RETURNING id, name, email, image";
+  try {
+    const result = await pool.query(query, [id]);
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error deleting user by ID:", error);
+    throw error;
+  }
+};
+
+module.exports = {
+  insertUser,
+  findUserByEmail,
+  findUserId,
+  updateUserById,
+  allUser,
+  deleteProfileById,
+};
