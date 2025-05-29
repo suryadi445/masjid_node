@@ -13,6 +13,13 @@ const {
   refreshToken,
   logout,
 } = require("../controllers/AuthController");
+const {
+  getRoles,
+  createRole,
+  getRoleById,
+  updateRoleById,
+  deleteRoleById,
+} = require("../controllers/RolesController");
 const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
 function handleRequest(req, res) {
@@ -47,9 +54,22 @@ function handleRequest(req, res) {
   } else if (req.method === "PUT" && url.pathname === "/api/user") {
     return updateUser(req, res);
   } else if (req.method === "DELETE" && url.pathname === "/api/user") {
-    // return deleteProfile(req, res);
+    return deleteProfile(req, res);
   } else if (req.method === "PUT" && url.pathname === "/api/user/profile") {
     return updateProfile(req, res);
+  }
+
+  //   Roles Routes
+  if (req.method === "GET" && url.pathname === "/api/roles") {
+    return getRoles(req, res);
+  } else if (req.method === "POST" && url.pathname === "/api/role") {
+    return createRole(req, res);
+  } else if (req.method === "GET" && url.pathname === "/api/role") {
+    return getRoleById(req, res);
+  } else if (req.method === "PUT" && url.pathname === "/api/role") {
+    return updateRoleById(req, res);
+  } else if (req.method === "DELETE" && url.pathname === "/api/role") {
+    return deleteRoleById(req, res);
   }
 
   // 404 Error Handling
