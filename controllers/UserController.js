@@ -16,8 +16,9 @@ const getAllUser = async function (req, res) {
 
   const page = parseInt(parsedUrl.query.page) || 1;
   const limit = parseInt(parsedUrl.query.limit) || 10;
+  const search = parsedUrl.query.search || "";
   try {
-    const users = await allUser(limit, page);
+    const users = await allUser(limit, page, search);
     res.success(200, users);
   } catch (error) {
     console.log(error);

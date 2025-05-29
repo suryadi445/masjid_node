@@ -131,17 +131,40 @@ const findUserId = async (id) => {
   }
 };
 
-const allUser = async (limit = 10, page = 1) => {
+const allUser = async (limit, page, search) => {
   const offset = (page - 1) * limit;
 
-  const query = `SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
-  const countQuery = `SELECT COUNT(*) FROM users`;
-
   try {
-    const dataResult = await pool.query(query, [limit, offset]);
-    const countResult = await pool.query(countQuery);
+    let dataResult, countResult;
 
-    const total = parseInt(countResult.rows[0].count);
+    if (search) {
+      const pattern = `%${search}%`;
+
+      dataResult = await pool.query(
+        `SELECT * FROM users
+           WHERE name ILIKE $1
+              OR email ILIKE $1
+           ORDER BY created_at DESC
+           LIMIT $2 OFFSET $3`,
+        [pattern, limit, offset]
+      );
+
+      countResult = await pool.query(
+        `SELECT COUNT(*) FROM users
+           WHERE name ILIKE $1
+              OR email ILIKE $1`,
+        [pattern]
+      );
+    } else {
+      dataResult = await pool.query(
+        `SELECT * FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+
+      countResult = await pool.query(`SELECT COUNT(*) FROM users`);
+    }
+
+    const total = parseInt(countResult.rows[0].count, 10);
     const last_page = Math.ceil(total / limit);
 
     return {
