@@ -1,4 +1,5 @@
 const { getBaseUrl } = require("../config/baseUrl");
+const { getSidebarMenus } = require("../controllers/SidebarController");
 const {
   getAllUser,
   createUser,
@@ -20,6 +21,13 @@ const {
   updateRoleById,
   deleteRoleById,
 } = require("../controllers/RolesController");
+const {
+  createRolePermissions,
+  getPermissions,
+  getRolePermissions,
+  updateRolePermissions,
+  deleteRolePermissions,
+} = require("../controllers/PermissionsControler");
 const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
 function handleRequest(req, res) {
@@ -42,6 +50,11 @@ function handleRequest(req, res) {
     return refreshToken(req, res);
   } else if (req.method === "POST" && url.pathname === "/api/auth/logout") {
     return logout(req, res);
+  }
+
+  //   sidebar menus
+  if (req.method === "GET" && url.pathname === "/api/sidebar-menus") {
+    return getSidebarMenus(req, res);
   }
 
   // User Routes
@@ -70,6 +83,22 @@ function handleRequest(req, res) {
     return updateRoleById(req, res);
   } else if (req.method === "DELETE" && url.pathname === "/api/role") {
     return deleteRoleById(req, res);
+  }
+
+  // permissions and role_permissions
+  if (req.method === "GET" && url.pathname === "/api/permissions") {
+    return getPermissions(req, res);
+  } else if (req.method === "GET" && url.pathname === "/api/role-permissions") {
+    return getRolePermissions(req, res);
+  } else if (req.method === "POST" && url.pathname === "/api/permissions") {
+    return createRolePermissions(req, res);
+  } else if (req.method === "PUT" && url.pathname === "/api/role-permissions") {
+    return updateRolePermissions(req, res);
+  } else if (
+    req.method === "DELETE" &&
+    url.pathname === "/api/role-permissions"
+  ) {
+    return deleteRolePermissions(req, res);
   }
 
   // 404 Error Handling

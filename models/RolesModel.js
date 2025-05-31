@@ -11,7 +11,7 @@ const RolesModel = {
 
         // Query data dengan filter
         dataResult = await pool.query(
-          `SELECT * FROM roles WHERE name ILIKE $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+          `SELECT * FROM roles WHERE name ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3`,
           [pattern, limit, offset]
         );
 
@@ -23,7 +23,7 @@ const RolesModel = {
       } else {
         // Query data tanpa filter
         dataResult = await pool.query(
-          `SELECT * FROM roles ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+          `SELECT * FROM roles ORDER BY id ASC LIMIT $1 OFFSET $2`,
           [limit, offset]
         );
 
