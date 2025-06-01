@@ -20,6 +20,7 @@ const {
   getRoleById,
   updateRoleById,
   deleteRoleById,
+  getMenuRole,
 } = require("../controllers/RolesController");
 const {
   createRolePermissions,
@@ -83,6 +84,8 @@ function handleRequest(req, res) {
     return updateRoleById(req, res);
   } else if (req.method === "DELETE" && url.pathname === "/api/role") {
     return deleteRoleById(req, res);
+  } else if (req.method === "GET" && url.pathname === "/api/menu-role") {
+    return getMenuRole(req, res);
   }
 
   // permissions and role_permissions

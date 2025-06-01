@@ -93,6 +93,33 @@ const RolesModel = {
       throw error;
     }
   }, // end deleteRole
+
+  async getMenuRoleById(userId) {
+    const roleQuery = `SELECT role_id FROM user_roles WHERE user_id = $1`;
+    const rolesResult = await pool.query(roleQuery, [userId]);
+    const roleIds = rolesResult.rows.map((r) => r.role_id);
+
+    if (roleIds.includes(1)) {
+      // if admin role is present, return all menus
+      const allMenusQuery = `
+          SELECT id, name, route, icon, sort_order FROM menus ORDER BY sort_order ASC
+        `;
+      const allMenusResult = await pool.query(allMenusQuery);
+      return allMenusResult.rows;
+    } else {
+      // if admin role is not present, return menus based on user roles
+      const menuQuery = `
+          SELECT DISTINCT m.id, m.name, m.route, m.icon, m.sort_order
+          FROM user_roles ur
+          JOIN menu_roles mr ON ur.role_id = mr.role_id
+          JOIN menus m ON mr.menu_id = m.id
+          WHERE ur.user_id = $1
+          ORDER BY m.sort_order ASC
+        `;
+      const menuResult = await pool.query(menuQuery, [userId]);
+      return menuResult.rows;
+    }
+  }, // end getMenuRoleById
 }; // end RolesModel
 
 module.exports = RolesModel;

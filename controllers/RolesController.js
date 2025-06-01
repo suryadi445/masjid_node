@@ -5,6 +5,7 @@ const {
   findRoleById,
   updateRole,
   deleteRole,
+  getMenuRoleById,
 } = require("../models/RolesModel");
 
 const getRoles = async (req, res) => {
@@ -57,6 +58,7 @@ const updateRoleById = async (req, res) => {
     return res.error(500, error.message);
   }
 };
+
 const deleteRoleById = async (req, res) => {
   try {
     const id = req.body.id;
@@ -73,10 +75,22 @@ const deleteRoleById = async (req, res) => {
   }
 };
 
+const getMenuRole = async (req, res) => {
+  const id = req.user.id;
+  try {
+    const response = await getMenuRoleById(id);
+    return res.success(200, response);
+  } catch (error) {
+    console.log(error);
+    return res.error(500, error.message);
+  }
+};
+
 module.exports = {
   getRoles,
   createRole,
   getRoleById,
   updateRoleById,
   deleteRoleById,
+  getMenuRole,
 };
