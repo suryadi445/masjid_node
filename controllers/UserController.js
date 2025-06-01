@@ -142,7 +142,7 @@ function updateUserByMultipartForm(req, res) {
 }
 
 async function updateUserByJson(req, res) {
-  const { id, name, email, password } = req.body;
+  const { id, name, email, password, roles } = req.body;
 
   try {
     let hashedPassword = null;
@@ -157,6 +157,7 @@ async function updateUserByJson(req, res) {
         email: email,
         password: hashedPassword,
         update_by: req.user?.id,
+        roles: roles,
       },
     });
     return res.success(200, update);

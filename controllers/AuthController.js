@@ -65,7 +65,7 @@ const validateLogin = async (data) => {
 // function register
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, roles } = req.body;
 
     const validation = await validateRegister({ name, email, password });
     if (validation.errors) {
@@ -76,7 +76,7 @@ const register = async (req, res) => {
     const hashedPassword = await hashPassword(password);
 
     // save to database
-    const newUser = await insertUser(name, email, hashedPassword);
+    const newUser = await insertUser(name, email, hashedPassword, roles);
 
     return res.success(201, newUser);
   } catch (error) {
