@@ -271,6 +271,19 @@ const deleteProfileById = async (id) => {
   }
 };
 
+const findUserRoles = async (userId) => {
+  try {
+    const result = await pool.query(
+      "SELECT role_id FROM user_roles WHERE user_id = $1",
+      [userId]
+    );
+    return result.rows.map((row) => row.role_id);
+  } catch (error) {
+    console.error("Error finding user roles:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   insertUser,
   findUserByEmail,
@@ -278,4 +291,5 @@ module.exports = {
   updateUserById,
   allUser,
   deleteProfileById,
+  findUserRoles,
 };

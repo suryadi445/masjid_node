@@ -1,5 +1,9 @@
 const bcrypt = require("bcrypt");
-const { insertUser, findUserByEmail } = require("../models/userModel");
+const {
+  insertUser,
+  findUserByEmail,
+  findUserRoles,
+} = require("../models/userModel");
 const { hashPassword } = require("../helpers/hashPasswordHelper");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
@@ -99,6 +103,15 @@ const login = async (req, res) => {
 
     if (!user) {
       return res.error(401, "Email is not registered.");
+    }
+
+    const roles = await findUserRoles(user.id);
+
+    if (roles.length === 0) {
+      return res.error(
+        401,
+        "Please contact your administrator for login access."
+      );
     }
 
     const isMatch = await bcrypt.compare(data.password, user.password);
