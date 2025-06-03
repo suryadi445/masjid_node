@@ -67,6 +67,10 @@ const deleteRoleById = async (req, res) => {
       return res.error(400, "Role ID is required");
     }
 
+    if (id == 2) {
+      return res.error(400, "Cannot delete Admin role");
+    }
+
     const deletedRole = await deleteRole(id);
     return res.success(200, deletedRole);
   } catch (error) {
