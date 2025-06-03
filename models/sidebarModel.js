@@ -46,6 +46,18 @@ const sidebarMenu = {
     }
   },
 
+  async getAllMenusModel() {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM menus ORDER BY sort_order ASC"
+      );
+      return result.rows;
+    } catch (error) {
+      console.error("Error fetching menus:", error);
+      throw error;
+    }
+  },
+
   async createMenuModel(name, icon, sort_order, is_active) {
     try {
       const result = await pool.query(

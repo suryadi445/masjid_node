@@ -4,6 +4,7 @@ const {
   updateMenuModel,
   deleteMenuModel,
   createMenuModel,
+  getAllMenusModel,
 } = require("../models/sidebarModel");
 
 const getSidebarMenus = async (req, res) => {
@@ -13,6 +14,16 @@ const getSidebarMenus = async (req, res) => {
   const search = parsedUrl.query.search || "";
   try {
     const menus = await getAllSidebarMenus(limit, page, search);
+    return res.success(200, menus);
+  } catch (error) {
+    console.error(error);
+    return res.error(500, "Failed to fetch menus");
+  }
+};
+
+const getAllMenus = async (req, res) => {
+  try {
+    const menus = await getAllMenusModel();
     return res.success(200, menus);
   } catch (error) {
     console.error(error);
@@ -60,4 +71,10 @@ const deleteMenu = async (req, res) => {
   }
 };
 
-module.exports = { getSidebarMenus, createMenu, updateMenu, deleteMenu };
+module.exports = {
+  getSidebarMenus,
+  createMenu,
+  updateMenu,
+  deleteMenu,
+  getAllMenus,
+};
