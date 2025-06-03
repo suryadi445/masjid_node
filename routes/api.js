@@ -1,5 +1,10 @@
 const { getBaseUrl } = require("../config/baseUrl");
-const { getSidebarMenus } = require("../controllers/SidebarController");
+const {
+  getSidebarMenus,
+  updateMenu,
+  createMenu,
+  deleteMenu,
+} = require("../controllers/SidebarController");
 const {
   getAllUser,
   createUser,
@@ -56,6 +61,12 @@ function handleRequest(req, res) {
   //   sidebar menus
   if (req.method === "GET" && url.pathname === "/api/sidebar-menus") {
     return getSidebarMenus(req, res);
+  } else if (req.method === "POST" && url.pathname === "/api/menu") {
+    return createMenu(req, res);
+  } else if (req.method === "PUT" && url.pathname === "/api/menu") {
+    return updateMenu(req, res);
+  } else if (req.method === "DELETE" && url.pathname === "/api/menu") {
+    return deleteMenu(req, res);
   }
 
   // User Routes
