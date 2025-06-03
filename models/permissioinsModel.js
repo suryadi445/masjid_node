@@ -254,12 +254,6 @@ const PermissionModel = {
       }
 
       await client.query(
-        `DELETE FROM role_permissions 
-         WHERE role_id = $1 AND permission_id = ANY($2)`,
-        [role, permissionIds]
-      );
-
-      await client.query(
         `DELETE FROM menu_permissions 
          WHERE menu_id = $1 AND permission_id = ANY($2)`,
         [menu, permissionIds]

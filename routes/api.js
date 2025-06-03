@@ -1,6 +1,7 @@
 const { getBaseUrl } = require("../config/baseUrl");
 const {
   getSidebarMenus,
+  getAllMenus,
   updateMenu,
   createMenu,
   deleteMenu,
@@ -61,6 +62,8 @@ function handleRequest(req, res) {
   //   sidebar menus
   if (req.method === "GET" && url.pathname === "/api/sidebar-menus") {
     return getSidebarMenus(req, res);
+  } else if (req.method === "GET" && url.pathname === "/api/menus") {
+    return getAllMenus(req, res);
   } else if (req.method === "POST" && url.pathname === "/api/menu") {
     return createMenu(req, res);
   } else if (req.method === "PUT" && url.pathname === "/api/menu") {
