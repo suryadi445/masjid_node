@@ -8,10 +8,17 @@ exports.up = function (knex) {
     table.integer("role_id").notNullable();
 
     table.primary(["user_id", "role_id"]);
+
     table
       .foreign("user_id")
       .references("id")
       .inTable("users")
+      .onDelete("CASCADE");
+
+    table
+      .foreign("role_id")
+      .references("id")
+      .inTable("roles")
       .onDelete("CASCADE");
   });
 };
