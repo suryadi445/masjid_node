@@ -4,6 +4,7 @@ const RolesModel = {
   async getAllRoles(limit, page, search) {
     const offset = (page - 1) * limit;
     let dataResult, countResult;
+    const super_admin = 1;
 
     try {
       if (search) {
@@ -11,8 +12,8 @@ const RolesModel = {
 
         // Query data dengan filter
         dataResult = await pool.query(
-          `SELECT * FROM roles WHERE name ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3`,
-          [pattern, limit, offset]
+          `SELECT * FROM roles WHERE id != $1 AND name ILIKE $2 ORDER BY id ASC LIMIT $3 OFFSET $4`,
+          [super_admin, pattern, limit, offset]
         );
 
         // Query count total data yang cocok
@@ -23,8 +24,8 @@ const RolesModel = {
       } else {
         // Query data tanpa filter
         dataResult = await pool.query(
-          `SELECT * FROM roles ORDER BY id ASC LIMIT $1 OFFSET $2`,
-          [limit, offset]
+          `SELECT * FROM roles WHERE id != $1 ORDER BY id ASC LIMIT $2 OFFSET $3`,
+          [super_admin, limit, offset]
         );
 
         // Query total count
@@ -47,6 +48,8 @@ const RolesModel = {
   }, // end getAllRoles
 
   async insertRole(role, description, createdBy) {
+    await RolesModel.checkRole(role);
+
     try {
       const result = await pool.query(
         "INSERT INTO roles (name, description, created_by) VALUES ($1, $2, $3) RETURNING *",
@@ -58,6 +61,17 @@ const RolesModel = {
       throw error;
     }
   }, // end insertRole
+
+  async checkRole(role) {
+    const existing = await pool.query(
+      "SELECT * FROM roles WHERE LOWER(name) = LOWER($1)",
+      [role]
+    );
+
+    if (existing.rows.length > 0) {
+      throw new Error("Role name already exists");
+    }
+  }, // end checkRole by role name
 
   async findRoleById(id) {
     try {
@@ -99,15 +113,15 @@ const RolesModel = {
     const rolesResult = await pool.query(roleQuery, [userId]);
     const roleIds = rolesResult.rows.map((r) => r.role_id);
 
-    if (roleIds.includes(1)) {
-      // if admin role is present, return all menus
+    if (roleIds.includes(1) || roleIds.includes(2)) {
+      // if super admin or admin role is present, return all menus
       const allMenusQuery = `
           SELECT id, name, route, icon, sort_order FROM menus ORDER BY sort_order ASC
         `;
       const allMenusResult = await pool.query(allMenusQuery);
       return allMenusResult.rows;
     } else {
-      // if admin role is not present, return menus based on user roles
+      // if super admin or admin role is not present, return menus based on user roles
       const menuQuery = `
           SELECT DISTINCT m.id, m.name, m.route, m.icon, m.sort_order
           FROM user_roles ur
