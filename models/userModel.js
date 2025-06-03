@@ -183,6 +183,7 @@ const findUserId = async (id) => {
 
 const allUser = async (limit, page, search) => {
   const offset = (page - 1) * limit;
+  const super_admin = 1;
 
   try {
     let dataResult, countResult;
@@ -202,33 +203,48 @@ const allUser = async (limit, page, search) => {
     if (search) {
       const pattern = `%${search}%`;
 
-      // Filter users by name or email with search
       const filteredQuery = `
           ${baseQuery}
-          WHERE users.name ILIKE $1 OR users.email ILIKE $1
+          WHERE (users.name ILIKE $1 OR users.email ILIKE $1)
+            AND users.id NOT IN (
+              SELECT user_id FROM user_roles WHERE role_id = $4
+            )
           GROUP BY users.id
           ORDER BY users.created_at DESC
           LIMIT $2 OFFSET $3
         `;
 
-      dataResult = await pool.query(filteredQuery, [pattern, limit, offset]);
+      dataResult = await pool.query(filteredQuery, [
+        pattern,
+        limit,
+        offset,
+        super_admin,
+      ]);
 
       countResult = await pool.query(
-        `SELECT COUNT(*) FROM users WHERE name ILIKE $1 OR email ILIKE $1`,
-        [pattern]
+        `SELECT COUNT(*) FROM users 
+           WHERE (name ILIKE $1 OR email ILIKE $1)
+           AND id NOT IN (SELECT user_id FROM user_roles WHERE role_id = $2)`,
+        [pattern, super_admin]
       );
     } else {
-      // Without search
       const allQuery = `
           ${baseQuery}
+          WHERE users.id NOT IN (
+            SELECT user_id FROM user_roles WHERE role_id = $3
+          )
           GROUP BY users.id
           ORDER BY users.created_at DESC
           LIMIT $1 OFFSET $2
         `;
 
-      dataResult = await pool.query(allQuery, [limit, offset]);
+      dataResult = await pool.query(allQuery, [limit, offset, super_admin]);
 
-      countResult = await pool.query(`SELECT COUNT(*) FROM users`);
+      countResult = await pool.query(
+        `SELECT COUNT(*) FROM users 
+           WHERE id NOT IN (SELECT user_id FROM user_roles WHERE role_id = $1)`,
+        [super_admin]
+      );
     }
 
     const total = parseInt(countResult.rows[0].count, 10);
