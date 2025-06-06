@@ -35,6 +35,10 @@ const {
   updateRolePermissions,
   deleteRolePermissions,
 } = require("../controllers/PermissionsControler");
+const {
+  getSettingsApps,
+  updateSettingsApps,
+} = require("../controllers/SettingsController");
 const { successResponse, errorResponse } = require("../helpers/responseHelper");
 
 function handleRequest(req, res) {
@@ -116,6 +120,12 @@ function handleRequest(req, res) {
     url.pathname === "/api/role-permissions"
   ) {
     return deleteRolePermissions(req, res);
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/settings-apps") {
+    return getSettingsApps(req, res);
+  } else if (req.method === "PUT" && url.pathname === "/api/settings-apps") {
+    return updateSettingsApps(req, res);
   }
 
   // 404 Error Handling
