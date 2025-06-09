@@ -49,8 +49,6 @@ function getUser(req, res) {
 
       const { password, created_at, updated_at, ...safeProfile } = profile;
 
-      safeProfile.path = process.env.FILE_UPLOAD_PATH;
-
       return res.success(200, safeProfile);
     })
     .catch((error) => {
@@ -92,6 +90,22 @@ function updateUserByMultipartForm(req, res) {
     const email = getField(fields.email);
     const imageFile = files.image;
 
+    let roles = [];
+    try {
+      if (fields.roles) {
+        if (Array.isArray(fields.roles)) {
+          roles = fields.roles;
+        } else {
+          roles = JSON.parse(getField(fields.roles));
+        }
+      }
+    } catch (e) {
+      return res.error(
+        400,
+        "Invalid roles format. Must be JSON array or repeated field."
+      );
+    }
+
     // upload image
     let imageName = null;
     if (imageFile && imageFile[0]) {
@@ -130,6 +144,7 @@ function updateUserByMultipartForm(req, res) {
           email: email,
           image: imageName || null,
           update_by: req.user?.id,
+          roles: roles,
         },
       });
 

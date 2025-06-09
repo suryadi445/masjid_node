@@ -1,3 +1,5 @@
+const path = process.env.FILE_UPLOAD_PATH || null;
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
@@ -13,6 +15,7 @@ exports.up = async function (knex) {
       table.text("password").notNullable();
       table.timestamp("created_at").defaultTo(knex.fn.now());
       table.timestamp("updated_at").defaultTo(knex.fn.now());
+      table.string("path", 255).nullable().defaultTo(path);
       table.string("image", 255).nullable();
       table.uuid("updated_by").nullable();
 

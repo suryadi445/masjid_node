@@ -92,7 +92,7 @@ const updateUserById = async ({ data }) => {
         UPDATE users
         SET ${setFields.join(", ")}
         WHERE id = $${values.length + 1}
-        RETURNING id, name, email, image
+        RETURNING id, name, email, path, image
       `;
     values.push(id);
 
@@ -141,6 +141,7 @@ const findUserId = async (id) => {
         u.id AS user_id,
         u.name,
         u.email,
+        u.path,
         u.image,
         up.birthday,
         up.gender,
