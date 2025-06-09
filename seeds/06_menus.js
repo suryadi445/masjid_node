@@ -12,7 +12,7 @@ exports.seed = async function (knex) {
       id: 1,
       name: "Dashboard",
       icon: "FaLaptopHouse",
-      route: "/",
+      route: "/dashboard",
       parent_id: null,
       sort_order: 1,
       is_active: true,
