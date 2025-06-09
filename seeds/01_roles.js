@@ -9,17 +9,14 @@ exports.seed = async function (knex) {
   // Masukkan data role awal
   await knex("roles").insert([
     {
-      id: 1,
       name: "Super Admin",
       description: "Super Admin",
     },
     {
-      id: 2,
       name: "Admin",
       description: "Admin",
     },
     {
-      id: 3,
       name: "User",
       description: "User",
     },
