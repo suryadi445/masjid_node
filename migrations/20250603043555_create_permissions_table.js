@@ -3,11 +3,11 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.schema.createTable("permissions", function (table) {
-    table.increments("id").primary();
-    table.string("name", 100).notNullable().unique();
-    table.text("description").nullable();
-  });
+    return knex.schema.createTable("permissions", function (table) {
+        table.increments("id").primary();
+        table.string("name", 100).notNullable().unique();
+        table.text("description").nullable();
+    });
 };
 
 /**
@@ -15,5 +15,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.schema.dropTable("permissions");
+    return knex.schema.dropTable("permissions");
 };
