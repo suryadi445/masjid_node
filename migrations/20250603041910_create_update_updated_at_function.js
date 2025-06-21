@@ -3,7 +3,7 @@
  * @returns { Promise<void> }
  */
 exports.up = function (knex) {
-  return knex.raw(`
+    return knex.raw(`
         CREATE OR REPLACE FUNCTION update_updated_at_column()
         RETURNS TRIGGER AS $$
         BEGIN
@@ -19,5 +19,5 @@ exports.up = function (knex) {
  * @returns { Promise<void> }
  */
 exports.down = function (knex) {
-  return knex.raw(`DROP FUNCTION IF EXISTS update_updated_at_column();`);
+    return knex.raw(`DROP FUNCTION IF EXISTS update_updated_at_column();`);
 };
