@@ -156,7 +156,8 @@ const findUserId = async (id) => {
             JSON_BUILD_OBJECT(
               'id', r.id,
               'name', r.name,
-              'description', r.description
+              'description', r.description,
+              'permissions', rp.permissions
             )
           ) FILTER (WHERE r.id IS NOT NULL),
           '[]'
@@ -165,6 +166,12 @@ const findUserId = async (id) => {
       LEFT JOIN user_profiles up ON u.id = up.user_id
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
+      LEFT JOIN LATERAL (
+          SELECT ARRAY_AGG(DISTINCT p.name) AS permissions
+          FROM role_permissions rp
+          JOIN permissions p ON rp.permission_id = p.id
+          WHERE rp.role_id = r.id
+      ) rp ON true
       WHERE u.id = $1
       GROUP BY 
       u.id, u.name, u.email, u.image,
