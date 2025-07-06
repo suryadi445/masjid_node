@@ -137,7 +137,7 @@ const findUserByEmail = async (email) => {
 // Check user By id
 const findUserId = async (id) => {
     const query = `
-      SELECT 
+      SELECT
         u.id AS user_id,
         u.name,
         u.email,
@@ -152,32 +152,44 @@ const findUserId = async (id) => {
         up.address,
         up.biography,
         COALESCE(
-          JSON_AGG(
-            JSON_BUILD_OBJECT(
-              'id', r.id,
-              'name', r.name,
-              'description', r.description,
-              'permissions', rp.permissions
-            )
-          ) FILTER (WHERE r.id IS NOT NULL),
-          '[]'
+            JSON_AGG(
+                JSON_BUILD_OBJECT(
+                    'id', r.id,
+                    'name', r.name,
+                    'description', r.description,
+                    'menus', menu_permissions.permissions_by_menu
+                )
+            ) FILTER (WHERE r.id IS NOT NULL),
+            '[]'
         ) AS roles
-      FROM users u
-      LEFT JOIN user_profiles up ON u.id = up.user_id
-      LEFT JOIN user_roles ur ON u.id = ur.user_id
-      LEFT JOIN roles r ON ur.role_id = r.id
-      LEFT JOIN LATERAL (
-          SELECT ARRAY_AGG(DISTINCT p.name) AS permissions
-          FROM role_permissions rp
-          JOIN permissions p ON rp.permission_id = p.id
-          WHERE rp.role_id = r.id
-      ) rp ON true
-      WHERE u.id = $1
-      GROUP BY 
-      u.id, u.name, u.email, u.image,
-      up.birthday, up.gender, up.phone_number, 
-      up.title, up.religion, up.marital_status, 
-      up.address, up.biography
+    FROM users u
+    LEFT JOIN user_profiles up ON u.id = up.user_id
+    LEFT JOIN user_roles ur ON u.id = ur.user_id
+    LEFT JOIN roles r ON ur.role_id = r.id
+    LEFT JOIN LATERAL (
+        SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+                'menu_id', m.id,
+                'menu_name', m.name,
+                'permissions', perms.permission_names
+            )
+        ) AS permissions_by_menu
+        FROM menu_roles mr
+        JOIN menus m ON m.id = mr.menu_id AND mr.role_id = r.id
+        LEFT JOIN (
+            SELECT mp.menu_id, ARRAY_AGG(DISTINCT p.name ORDER BY p.name) AS permission_names
+            FROM menu_permissions mp
+            JOIN role_permissions rp ON rp.permission_id = mp.permission_id AND rp.role_id = r.id
+            JOIN permissions p ON p.id = rp.permission_id
+            GROUP BY mp.menu_id
+        ) perms ON perms.menu_id = m.id
+    ) menu_permissions ON true
+    WHERE u.id = $1
+    GROUP BY
+        u.id, u.name, u.email, u.path, u.image,
+        up.birthday, up.gender, up.phone_number,
+        up.title, up.religion, up.marital_status,
+        up.address, up.biography
     `;
 
     try {
